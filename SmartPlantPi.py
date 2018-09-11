@@ -21,8 +21,8 @@ import logging;
 logging.basicConfig(level=logging.INFO) 
 
 
-from pubnub.pubnub import PubNub
-from pubnub.pubnub import PNConfiguration
+#from pubnub.pubnub import PubNub
+#from pubnub.pubnub import PNConfiguration
 
 
 #appends
@@ -329,19 +329,19 @@ def returnTemperatureCFUnit():
 	else:
 		return  "F"
 
-
+###Killing this in favor or MQTT to the database###
 ################
 #Pubnub configuration 
 ################
 # 
 
-pnconf = PNConfiguration()
+#pnconf = PNConfiguration()
  
-pnconf.subscribe_key = config.Pubnub_Subscribe_Key
-pnconf.publish_key = config.Pubnub_Publish_Key
+#pnconf.subscribe_key = config.Pubnub_Subscribe_Key
+#pnconf.publish_key = config.Pubnub_Publish_Key
   
 
-pubnub = PubNub(pnconf)
+#pubnub = PubNub(pnconf)
 
 def publish_callback(result, status):
         if (DEBUG):
@@ -351,43 +351,46 @@ def publish_callback(result, status):
         # handle publish result, status always present, result if successful
         # status.isError to see if error happened
 
-def publishStatusToPubNub():
+#def publishStatusToPubNub():
 
-        myMessage = {}
-        myMessage["SmartPlantPi_CurrentStatus"] = state.SPP_Values[state.SPP_State]
+#        myMessage = {}
+#        myMessage["SmartPlantPi_CurrentStatus"] = state.SPP_Values[state.SPP_State]
         
-        if (DEBUG):
-        	print myMessage
+#        if (DEBUG):
+#        	print myMessage
 
-        pubnub.publish().channel('SmartPlantPi_Data').message(myMessage).async(publish_callback)
+#        pubnub.publish().channel('SmartPlantPi_Data').message(myMessage).async(publish_callback)
 
-def publishEventToPubNub():
+#def publishEventToPubNub():
 
-        myMessage = {}
-        myMessage["SmartPlantPi_Last_Event"] = state.Last_Event
+#        myMessage = {}
+#        myMessage["SmartPlantPi_Last_Event"] = state.Last_Event
         
-        if (DEBUG):
-        	print myMessage
+#        if (DEBUG):
+#        	print myMessage
 
-        pubnub.publish().channel('SmartPlantPi_Data').message(myMessage).async(publish_callback)
+#        pubnub.publish().channel('SmartPlantPi_Data').message(myMessage).async(publish_callback)
 
-def publishAlarmToPubNub(alarmText):
+#def publishAlarmToPubNub(alarmText):
 
-        myMessage = {}
-        myMessage["SmartPlantPi_Alarm"] = alarmText 
+#        myMessage = {}
+#        myMessage["SmartPlantPi_Alarm"] = alarmText 
         
+#        if (DEBUG):
+#        	print myMessage
+
+#        pubnub.publish().channel('SmartPlantPi_Data').message(myMessage).async(publish_callback)
+
+#def publishStateToPubNub():
+def printToJSONFile():	
         if (DEBUG):
-        	print myMessage
+        	print('Publishing JSON File to Mosquitto at time: %s' % datetime.now())
 
-        pubnub.publish().channel('SmartPlantPi_Data').message(myMessage).async(publish_callback)
-
-def publishStateToPubNub():
-	
-        if (DEBUG):
-        	print('Publishing Data to PubNub time: %s' % datetime.now())
-
-
-        myMessage = {}
+	#Does this vector read out just values? Or does it label them?	TESTING NEEDED
+	#The following format also prints the JSON...
+	#print '"Sunlight Visible":"' + str(state.Sunlight_Vis) + '",'
+        
+	myMessage = {}
         myMessage["SmartPlantPi_Visible"] = "{:4.2f}".format(state.Sunlight_Vis) 
         myMessage["SmartPlantPi_IR"] = "{:4.2f}".format(state.Sunlight_IR) 
         myMessage["SmartPlantPi_UVIndex"] = "{:4.2f}".format(state.Sunlight_UVIndex) 
@@ -412,8 +415,27 @@ def publishStateToPubNub():
         if (DEBUG):
         	print myMessage
 
-        pubnub.publish().channel('SmartPlantPi_Data').message(myMessage).async(publish_callback)
-        pubnub.publish().channel('SmartPlantPi_Alexa').message(myMessage).async(publish_callback)
+#NEED TO PRINT THE WHOLE BIT TO JSON:
+	#file=open("SQL_Data_Out.txt", "a")
+	#file.write('{')
+	#file.write('"Sunlight Visible":"' + str(state.Sunlight_Vis) + '",')
+	#file.write('"Sunlight Visible":"' + str(state.Sunlight_IR) + '",')
+	#file.write('"Sunlight Visible":"' + str(state.Sunlight_UVIndex) + '",')
+	#file.write('"Sunlight Visible":"' + str(state.Moisture_Humidity) + '",')
+	#file.write('"Sunlight Visible":"' + str(state.AirQuality_Sensor_Value) + '",')
+	#file.write('"Sunlight Visible":"' + str(state.AirQuality_Sensor_Number) + '",')
+	#file.write('"Sunlight Visible":"' + str(state.AirQuality_Sensor_Text) + '",')
+	#file.write('"Sunlight Visible":"' + str(state.Temperature) + '",')
+	#file.write('"Sunlight Visible":"' + str(state.Humidity) + '",')
+	#file.write('"Sunlight Visible":"' + str(state.Moisture_Threshold) + '"')
+	#file.write('};')
+	#file.close()
+	
+	#MQTT output
+	#mosquitto_pub -t “sensor_data” -u “pi” -P “MoMoMonitor” -h TBA -f ~/sql_data
+	
+#        pubnub.publish().channel('SmartPlantPi_Data').message(myMessage).async(publish_callback)
+#        pubnub.publish().channel('SmartPlantPi_Alexa').message(myMessage).async(publish_callback)
 
         blinkLED(3,0.200)
 
@@ -910,8 +932,9 @@ if __name__ == '__main__':
     print "-----------------"
     
     state.Last_Event = "Started at: "+time.strftime("%Y-%m-%d %H:%M:%S")
-    publishEventToPubNub()
-
+    #publishEventToPubNub()
+    printToJSONFile()
+	
     if (config.OLED_Present):
         if (DEBUG):
              print "Attempt OLEDLock acquired"
