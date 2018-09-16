@@ -1,0 +1,3 @@
+sed 's/, }/}/g' Adafruit_Python_GPIO/SDL_Pi_SmartPlantPi/JSON_Data_Out.txt > ~/JSON_Out.txt
+mosquitto_pub -t "test" -u "pi" -P "password" -f ~/JSON_Out.txt -h 149.165.169.239
+

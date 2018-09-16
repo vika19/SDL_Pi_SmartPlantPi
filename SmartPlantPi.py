@@ -219,7 +219,7 @@ def waterPlant():
             previousState = state.SPP_State;
 	    #if(state.SPP_State == state.SPP_States.Monitor):
             state.SPP_State =state.SPP_States.Watering
-            publishStatusToPubNub()
+            #publishStatusToPubNub()
             totalWaterPumped =  pumpWater(2.0)
            
             if (totalWaterPumped <= 0.0):
@@ -230,7 +230,7 @@ def waterPlant():
 	    if (DEBUG):
 		print "Total Water Pumped = %6.2f" % totalWaterPumped 
             state.SPP_State = previousState
-            publishStatusToPubNub()
+            #publishStatusToPubNub()
             state.Last_Event = "Plant Watered at: "+time.strftime("%Y-%m-%d %H:%M:%S")
             if (DEBUG):
                   print "WP-Attempt UpdateStateLock released"
@@ -329,7 +329,7 @@ def returnTemperatureCFUnit():
 	else:
 		return  "F"
 
-###Killing this in favor or MQTT to the database###
+
 ################
 #Pubnub configuration 
 ################
@@ -343,13 +343,13 @@ def returnTemperatureCFUnit():
 
 #pubnub = PubNub(pnconf)
 
-def publish_callback(result, status):
-        if (DEBUG):
-		print "status.is_error", status.is_error()
-		print "status.original_response", status.original_response
-		pass
-        # handle publish result, status always present, result if successful
-        # status.isError to see if error happened
+#def publish_callback(result, status):
+#       if (DEBUG):
+#		print "status.is_error", status.is_error()
+#		print "status.original_response", status.original_response
+#		pass
+#        # handle publish result, status always present, result if successful
+#        # status.isError to see if error happened
 
 #def publishStatusToPubNub():
 
@@ -371,69 +371,55 @@ def publish_callback(result, status):
 
 #        pubnub.publish().channel('SmartPlantPi_Data').message(myMessage).async(publish_callback)
 
-#def publishAlarmToPubNub(alarmText):
+def publishAlarmToPubNub(alarmText):
 
-#        myMessage = {}
-#        myMessage["SmartPlantPi_Alarm"] = alarmText 
+        myMessage = {}
+        myMessage["SmartPlantPi_Alarm"] = alarmText 
         
-#        if (DEBUG):
-#        	print myMessage
+        if (DEBUG):
+        	print myMessage
 
 #        pubnub.publish().channel('SmartPlantPi_Data').message(myMessage).async(publish_callback)
 
 #def publishStateToPubNub():
-def printToJSONFile():	
-        if (DEBUG):
-        	print('Publishing JSON File to Mosquitto at time: %s' % datetime.now())
+def pubJSONToFile():
 
-	#Does this vector read out just values? Or does it label them?	TESTING NEEDED
-	#The following format also prints the JSON...
-	#print '"Sunlight Visible":"' + str(state.Sunlight_Vis) + '",'
-        
-	myMessage = {}
-        myMessage["SmartPlantPi_Visible"] = "{:4.2f}".format(state.Sunlight_Vis) 
-        myMessage["SmartPlantPi_IR"] = "{:4.2f}".format(state.Sunlight_IR) 
-        myMessage["SmartPlantPi_UVIndex"] = "{:4.2f}".format(state.Sunlight_UVIndex) 
-        myMessage["SmartPlantPi_MoistureHumidity"] = "{:4.1f}".format(state.Moisture_Humidity) 
-        myMessage["SmartPlantPi_AirQuality_Sensor_Value"] = "{}".format(state.AirQuality_Sensor_Value) 
-        myMessage["SmartPlantPi_AirQuality_Sensor_Number"] = "{}".format(state.AirQuality_Sensor_Number) 
-        myMessage["SmartPlantPi_AirQuality_Sensor_Text"] = "{}".format(state.AirQuality_Sensor_Text) 
-        myMessage["SmartPlantPi_Temperature"] = "{:4.1f} {}".format(returnTemperatureCF(state.Temperature), returnTemperatureCFUnit() )
-        myMessage["SmartPlantPi_Humidity"] = "{:4.1f}".format(state.Humidity) 
-        myMessage["SmartPlantPi_CurrentStatus"] = "{}".format(state.SPP_Values[state.SPP_State])
-        myMessage["SmartPlantPi_Moisture_Threshold"] = '{:4.1f}'.format(state.Moisture_Threshold)
-        myMessage["SmartPlantPi_Version"] = '{}'.format(SMARTPLANTPIVERSION) 
+        if (DEBUG):
+        	print('Publishing Data to JSON at time: %s' % datetime.now())
+
+        myMessage = {}
+        myMessage["Visible"] = "{:4.2f}".format(state.Sunlight_Vis) 
+        myMessage["IR"] = "{:4.2f}".format(state.Sunlight_IR) 
+        myMessage["UVIndex"] = "{:4.2f}".format(state.Sunlight_UVIndex) 
+        myMessage["MoistureHumidity"] = "{:4.1f}".format(state.Moisture_Humidity) 
+        myMessage["AirQuality_Sensor_Value"] = "{}".format(state.AirQuality_Sensor_Value) 
+        myMessage["AirQuality_Sensor_Number"] = "{}".format(state.AirQuality_Sensor_Number) 
+        myMessage["AirQuality_Sensor_Text"] = "{}".format(state.AirQuality_Sensor_Text) 
+        myMessage["Temperature"] = "{:4.1f} {}".format(returnTemperatureCF(state.Temperature), returnTemperatureCFUnit() )
+        myMessage["Humidity"] = "{:4.1f}".format(state.Humidity) 
+        myMessage["CurrentStatus"] = "{}".format(state.SPP_Values[state.SPP_State])
+        myMessage["Moisture_Threshold"] = '{:4.1f}'.format(state.Moisture_Threshold)
+        myMessage["Version"] = '{}'.format(SMARTPLANTPIVERSION) 
         myMessage["TimeStamp"] = '{}'.format( datetime.now().strftime( "%m/%d/%Y %H:%M:%S"))
-        myMessage["SmartPlantPi_Last_Event"] = "{}".format(state.Last_Event)
+        myMessage["Last_Event"] = "{}".format(state.Last_Event)
         if (state.Pump_Water_Full == 0): 
-            myMessage["SmartPlantPi_Water_Full_Text"] = "{}".format("Empty" )
-            myMessage["SmartPlantPi_Water_Full_Direction"] = "{}".format("180" )
+            myMessage["Water_Full_Text"] = "{}".format("Empty" )
+            myMessage["Water_Full_Direction"] = "{}".format("180" )
         else:
-            myMessage["SmartPlantPi_Water_Full_Text"] = "{}".format("Full" )
-            myMessage["SmartPlantPi_Water_Full_Direction"] = "{}".format("0" )
+            myMessage["Water_Full_Text"] = "{}".format("Full" )
+            myMessage["Water_Full_Direction"] = "{}".format("0" )
 
         if (DEBUG):
         	print myMessage
 
-#NEED TO PRINT THE WHOLE BIT TO JSON:
-	#file=open("SQL_Data_Out.txt", "a")
-	#file.write('{')
-	#file.write('"Sunlight Visible":"' + str(state.Sunlight_Vis) + '",')
-	#file.write('"Sunlight Visible":"' + str(state.Sunlight_IR) + '",')
-	#file.write('"Sunlight Visible":"' + str(state.Sunlight_UVIndex) + '",')
-	#file.write('"Sunlight Visible":"' + str(state.Moisture_Humidity) + '",')
-	#file.write('"Sunlight Visible":"' + str(state.AirQuality_Sensor_Value) + '",')
-	#file.write('"Sunlight Visible":"' + str(state.AirQuality_Sensor_Number) + '",')
-	#file.write('"Sunlight Visible":"' + str(state.AirQuality_Sensor_Text) + '",')
-	#file.write('"Sunlight Visible":"' + str(state.Temperature) + '",')
-	#file.write('"Sunlight Visible":"' + str(state.Humidity) + '",')
-	#file.write('"Sunlight Visible":"' + str(state.Moisture_Threshold) + '"')
-	#file.write('};')
-	#file.close()
-	
-	#MQTT output
-	#mosquitto_pub -t “sensor_data” -u “pi” -P “MoMoMonitor” -h TBA -f ~/sql_data
-	
+	print(myMessage)
+	file=open("JSON_Data_Out.txt","w")
+	file.write('{')
+        for k, v in myMessage.items():
+	    file.write('"' + str(k) + '" : "' + str(v) + '", ' )
+	file.write('}')
+	file.close()
+
 #        pubnub.publish().channel('SmartPlantPi_Data').message(myMessage).async(publish_callback)
 #        pubnub.publish().channel('SmartPlantPi_Alexa').message(myMessage).async(publish_callback)
 
@@ -678,8 +664,8 @@ def checkForAlarms():
 		if (activeAlarm == True):
 			displayActiveAlarms()
 		else:
-			publishAlarmToPubNub("")
-
+			#publishAlarmToPubNub("")
+			print "to do?"
 
 def centerText(text,sizeofline):
         textlength = len(text)
@@ -763,7 +749,7 @@ def displayActiveAlarms():
                       print "OLEDLock acquired"
 		
         	state.SPP_State =state.SPP_States.Alarm
-                publishStatusToPubNub()
+                #publishStatusToPubNub()
 		# initialize 
 		list = startAlarmStatementDisplay(display)
 		# Flash white screen w/Alarm in middle
@@ -781,35 +767,35 @@ def displayActiveAlarms():
         		if (DEBUG):
 				print "---->Moisture Sensor Fault"
 			displayAlarmOLEDDisplay(list, "MS Fault!", 10)
-			publishAlarmToPubNub("Mois Sen Fault")
+			#publishAlarmToPubNub("Mois Sen Fault")
 			time.sleep(1.0)
 
 		if (state.Alarm_Temperature >= state.Temperature):
         		if (DEBUG):
 				print "---->Temperature Alarm!"
 			displayAlarmOLEDDisplay(list, "Low Temp", 10)
-			publishAlarmToPubNub("Low Temp")
+			#publishAlarmToPubNub("Low Temp")
 			time.sleep(1.0)
 
 		if (state.Alarm_Moisture >= state.Moisture_Humidity):
 			displayAlarmOLEDDisplay(list, "Plant Dry", 14)
-			publishAlarmToPubNub("Plant Dry")
+			#publishAlarmToPubNub("Plant Dry")
 			time.sleep(1.0)
 
 		if (state.Alarm_Water  == True ):
 			if (state.Pump_Water_Full == False):
 				displayAlarmOLEDDisplay(list, "No Water", 12)
-				publishAlarmToPubNub("No Water")
+				#publishAlarmToPubNub("No Water")
 				time.sleep(1.0)
 
 		if (state.Alarm_Air_Quality <  state.AirQuality_Sensor_Value):
 			displayAlarmOLEDDisplay(list, "Air Quality", 14)
-			publishAlarmToPubNub("Air Quality")
+			#publishAlarmToPubNub("Air Quality")
 			time.sleep(1.0)
 
 
 		finishAlarmStatementDisplay(list)
-		publishAlarmToPubNub("Alarms!")
+		#publishAlarmToPubNub("Alarms!")
 
 		# Flash white to end
 		list = startAlarmStatementDisplay(display)
@@ -820,7 +806,7 @@ def displayActiveAlarms():
 		finishAlarmStatementDisplay(list)
 
         	state.SPP_State = state.SPP_States.Monitor
-                publishStatusToPubNub()
+                #publishStatusToPubNub()
 
                 if (DEBUG):
                     print "Attempt OLEDLock released"
@@ -828,8 +814,8 @@ def displayActiveAlarms():
                 if (DEBUG):
                     print "OLEDLock released"
 
-		if (state.Alarm_Active == False):   # it has been disabled
-			publishAlarmToPubNub("deactivated")
+		#if (state.Alarm_Active == False):   # it has been disabled
+			#publishAlarmToPubNub("deactivated")
 		# do an updateState so screen looks more responsive
 		scheduler.add_job(updateState )
 #############################
@@ -912,7 +898,9 @@ if __name__ == '__main__':
 
 
     # send State to PubNub 
-    scheduler.add_job(publishStateToPubNub, 'interval', seconds=60)
+    #scheduler.add_job(publishStateToPubNub, 'interval', seconds=60)
+    scheduler.add_job(pubJSONToFile, 'interval', minutes=1)
+    #pubJSONToFile()
 
     # check and water  
     scheduler.add_job(checkAndWater, 'interval', minutes=15)
@@ -933,8 +921,7 @@ if __name__ == '__main__':
     
     state.Last_Event = "Started at: "+time.strftime("%Y-%m-%d %H:%M:%S")
     #publishEventToPubNub()
-    printToJSONFile()
-	
+
     if (config.OLED_Present):
         if (DEBUG):
              print "Attempt OLEDLock acquired"
@@ -1004,8 +991,10 @@ if __name__ == '__main__':
 			saveState()
 
 		# Check and Interpret Rotary Dial and Button 
-		jobRotaryTimeOut = interpretRotary.interpretRotary(rotary, display, OLEDLock, scheduler,publishStatusToPubNub, jobRotaryTimeOut, updateState, publishAlarmToPubNub, saveState)
-
+		#HACKED
+		#jobRotaryTimeOut = interpretRotary.interpretRotary(rotary, display, OLEDLock, scheduler, jobRotaryTimeOut, updateState, saveState, saveState, saveState)
+		jobRotaryTimeOut = interpretRotary.interpretRotary(rotary, display, OLEDLock, scheduler,pubJSONToFile, jobRotaryTimeOut, updateState, publishAlarmToPubNub, saveState)
+		#jobRotaryTimeOut = interpretRotary.interpretRotary(rotary, display, OLEDLock, scheduler,publishStatusToPubNub, jobRotaryTimeOut, updateState, publishAlarmToPubNub, saveState)
 
 
     except KeyboardInterrupt:  
